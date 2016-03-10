@@ -22,8 +22,10 @@ var create = function(args, opts, callback){
     var gameName = args[1];
 
     // Is game name unique?
-    if (games[gameName])
+    if (games[gameName]) {
         callback('game already exists', null);
+        return;
+    }
 
     // Has user exceeded number of concurrent games?
 
