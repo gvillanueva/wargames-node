@@ -62,7 +62,28 @@ var login = function(args, opts, callback) {
             callback(null, authToken);
         }
     );
+}
 
+var logout = function(args, opts, callback){
+    var authToken = args;
+    
+    if (!authToken) {
+        callback('Invalid authToken param', null);
+        return;
+    }
+    
+    if (!users[authToken]) {
+        callback('No user found with that auth-token', null);
+        return;
+    }
+    
+    // If auth-token is found, delete user
+    delete users[authToken];
+    callback(null, null);
+    
+    // Probably should have some notification mechanism here if user
+    // is still connected to games
+    // foreach game, game.left(user[authToken].name)
 }
 
 var create = function(args, opts, callback){
@@ -143,6 +164,7 @@ var chat = function(args, opts, callback){
 
 // Expose JSON-RPC API
 server.expose('login', login);
+server.expose('logout', logout);
 server.expose('game.create', create);
 server.expose('game.listen', listen);
 server.expose('game.chat', chat);
