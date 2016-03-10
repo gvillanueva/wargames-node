@@ -142,7 +142,8 @@ var chat = function(args, opts, callback){
 }
 
 // Expose JSON-RPC API
-server.expose('game.create', create)
+server.expose('login', login);
+server.expose('game.create', create);
 server.expose('game.listen', listen);
 server.expose('game.chat', chat);
 //server.expose('game.users', users)
