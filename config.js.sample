@@ -1,0 +1,15 @@
+var config = {};
+
+config.game = {}
+config.database = {}
+
+config.hostname = 'localhost';
+
+config.game.timeout = 1800000;// = 30min * 60sec * 1000ms
+
+config.database.host = 'localhost';
+config.database.user = 'user';
+config.database.password = 'password';
+config.database.database = 'database';
+
+module.exports = config;
