@@ -88,30 +88,39 @@ var logout = function(args, opts, callback){
 
 var create = function(args, opts, callback){
     var user = args[0];
-    var gameName = args[1];
+    var game = args[1];
 
+    // Is game name 
+    if (!game.maxPlayers || game.maxPlayers <= 0)
+    {
+        callback('Can\'t have a game with no players!', null);
+        return;
+    }
+    
     // Is game name unique?
-    if (games[gameName]) {
-        callback('game already exists', null);
+    if (games[game.name]) {
+        callback('A game with that name already exists.', null);
         return;
     }
 
     // Has user exceeded number of concurrent games?
 
     // Create game
-    var game = new Game(gameName, 5);
+    var game = new Game(game.name, game.maxPlayers);
     
     // Set game timeout
     //game.timeout = setTimeout(serializeGame, config.game.timeout);
     
     // Add game to games object
-    games[gameName] = game;
+    games[game.name] = game;
     callback(null, game);
 }
 
 var listen = function(args, opts, callback){
     var user = args[0];
     var game = args[1];
+    
+    if (games[game.name])
 
     //if games[game.name] || games[game.name].user[user.name]
     // if user not in game
