@@ -1,8 +1,11 @@
 var config = require('./config');
 var Events = require('events');
-var Uuid = require('node-uuid');
 var JsonRpc = require('json-rpc2');
 var Game = require('./game');
+var MySQL = require('mysql');
+var Crypto = require('crypto');
+var User = require('./user');
+var bcrypt = require('bcrypt');
 
 var eventEmitter = new Events.EventEmitter();
 var server = JsonRpc.Server.$create({
@@ -12,10 +15,55 @@ var server = JsonRpc.Server.$create({
 	}
 });
 
+var users = {};
 var games = {};
 //games contain expiry timeout
 //games contain list of users[];
 //games contain list of messages[]?  probably not necessary
+var serializeGame = function()
+{
+    
+}
+
+// Valid args with user database information, store token in runtime
+var login = function(args, opts, callback) {
+    var user = args[0];
+    if (!user || !user.name || !user.password) {
+        callback("Bad arguments", null);
+        return;
+    }
+
+    // Create MySQL connection from config.database object
+    var connection = MySQL.createConnection(config.database);
+    connection.connect(function(err){
+        if (err) {
+            callback("Error connecting to database.", null);
+            return;
+        }
+    });
+
+    // Query database for user and validate password against bcrypt hash
+    connection.query(
+        'SELECT ToGuid(Guid) as Guid, Name, Password, Email FROM User WHERE Name = ?',
+        [user.name], function(err, rows, fields){
+            if (err) {
+                callback("Error querying users table.", null);
+                return;
+            }
+
+            if (rows.length <= 0 || !bcrypt.compareSync(user.password, rows[0].Password.replace('$2y$', '$2a$'))) {
+                callback("Username or password incorrect.", null);
+                return;
+            }
+
+            // Generate and store user auth-token (random sha256 hash)
+            var authToken = Crypto.createHash('sha256').update(Math.random().toString()).digest('hex');
+            users[authToken] = new User(user.name);
+            callback(null, authToken);
+        }
+    );
+
+}
 
 var create = function(args, opts, callback){
     var user = args[0];
