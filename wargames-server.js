@@ -1,5 +1,4 @@
 var config = require('./config');
-var Events = require('events');
 var JsonRpc = require('json-rpc2');
 var Game = require('./game');
 var MySQL = require('mysql');
@@ -7,7 +6,6 @@ var Crypto = require('crypto');
 var User = require('./user');
 var bcrypt = require('bcrypt');
 
-var eventEmitter = new Events.EventEmitter();
 var server = JsonRpc.Server.$create({
 	'websocket': true,
 	'headers': {
@@ -17,6 +15,7 @@ var server = JsonRpc.Server.$create({
 
 var users = {};
 var games = {};
+ 
 //games contain expiry timeout
 //games contain list of users[];
 //games contain list of messages[]?  probably not necessary
@@ -28,6 +27,7 @@ var serializeGame = function()
 // Valid args with user database information, store token in runtime
 var login = function(args, opts, callback) {
     var user = args[0];
+    
     if (!user || !user.name || !user.password) {
         callback("Bad arguments", null);
         return;
@@ -76,23 +76,60 @@ var logout = function(args, opts, callback){
         callback('No user found with that auth-token', null);
         return;
     }
-    
-    // If auth-token is found, delete user
+        
+    // If auth-token is found, disconnect from rooms and delete user
+    users[authToken].forEach(function(name) {
+        game[name].leave(authToken);
+    });
     delete users[authToken];
-    callback(null, null);
-    
-    // Probably should have some notification mechanism here if user
-    // is still connected to games
-    // foreach game, game.left(user[authToken].name)
+    callback(null, null);    
+}
+
+var listGames = function(args, opts, callback){
+    var user = args[0];
+    var filters = args[1];
+
+    // Is user authenticated?
+    if (!users[user.authToken]) {
+        callback('User not authorized.', null);
+        return;
+    }
+
+    rGames = [];// Returns game objects
+    if (filters.myGames == true) {
+        users[user.authToken].games.forEach(function (gameName) {
+            game = games[gameName];
+            console.log(game);
+            rGames.push({
+                "id": "",
+                "name": game.name,
+                "public": game.public,
+                "numUsers": (() => { var n = 0; for(k in game.users) n++; return n; })(),
+                "maxUsers": game.maxUsers
+            });
+        });
+    }
+    else
+    {
+
+    }
+
+    // Return games matching filter
+    callback(null, rGames);
 }
 
 var create = function(args, opts, callback){
     var user = args[0];
     var game = args[1];
 
+    // Is user authenticated?
+    if (!users[user.authToken]) {
+        callback('User not authorized.', null);
+        return;
+    }
+
     // Is game name 
-    if (!game.maxPlayers || game.maxPlayers <= 0)
-    {
+    if (!game.maxUsers || game.maxUsers <= 0) {
         callback('Can\'t have a game with no players!', null);
         return;
     }
@@ -106,7 +143,7 @@ var create = function(args, opts, callback){
     // Has user exceeded number of concurrent games?
 
     // Create game
-    var game = new Game(game.name, game.maxPlayers);
+    var game = new Game(game.name, game.maxUsers);
     
     // Set game timeout
     //game.timeout = setTimeout(serializeGame, config.game.timeout);
@@ -116,66 +153,63 @@ var create = function(args, opts, callback){
     callback(null, game);
 }
 
-var listen = function(args, opts, callback){
+var connect = function(args, conn, callback){
     var user = args[0];
     var game = args[1];
     
-    if (games[game.name])
+    // Is user authenticated?
+    if (!users[user.authToken]) {
+        callback('User not authorized.', null);
+        return;
+    }
+   
+    if (!games[game.name]) {
+        callback('No game exists by that name.', null);
+        return;
+    }
 
     //if games[game.name] || games[game.name].user[user.name]
     // if user not in game
     //  return;
-    console.log('connection started');
     
-    var chat = function(event){
-        opts.call('chat', event.data);
-        //opts.call('game.chat', event.data);
-    }
-    var joined = function(event){
-        opts.call('joined', event.data);
-    }
-    var left = function(event){
-        opts.call('left', event.data);
-    }
-
-    eventEmitter.emit('joined', {data: args});
-
-    // Register events for 'client' peer notifications
-    eventEmitter.on('chat', chat);
-    //eventEmitter.on('gameName.chat', chat);
-    eventEmitter.on('joined', joined);
-    eventEmitter.on('left', left);
-    
-    opts.stream(function(){
-        console.log('connection ended');
-        eventEmitter.removeListener('chat', chat);
-        eventEmitter.removeListener('joined', joined);
-        eventEmitter.removeListener('left', left);
-        eventEmitter.emit('left', {data: args});
-    });
-
-    // Leave connection open
-    callback(null);
+    if (!games[game.name].listen(user.authToken, conn, callback))
+        return;
+    users[user.authToken].games.push(game.name);
 }
 
 var chat = function(args, opts, callback){
-    // userObj
-    // gameObj
-    // messageObj
-    // if user not in game
-    //  return;
+    var user = args[0];
+    var game = args[1];
+    var message = args[2];
+
+    if (!games[game.name]) {
+        callback('No game exists by that name.', null);
+        return;
+    }
     
-    //console.log(args);
-    eventEmitter.emit('chat', {data: args});
-    //eventEmitter.emit(game.name + '.chat', {data: user.name + ": " + message.text});
-    //games[game.id].resetTimeout();
+    games[game.name].chat(user, message, callback);
+}
+
+var move = function(args, opts, callback){
+    var user = args[0];
+    var game = args[1];
+    var unit = args[2];
+    var move = args[3];
+
+    if (!games[game.name]) {
+        callback('No game exists by that name.', null);
+        return;
+    }
+    
+    games[game.name].chat(user, game, unit, move, callback);
 }
 
 // Expose JSON-RPC API
 server.expose('login', login);
 server.expose('logout', logout);
-server.expose('game.create', create);
-server.expose('game.listen', listen);
+server.expose('listGames', listGames);
+server.expose('create', create);
+server.expose('game.connect', connect);
 server.expose('game.chat', chat);
 //server.expose('game.users', users)
 
