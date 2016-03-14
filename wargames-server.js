@@ -97,7 +97,7 @@ var listGames = function(args, opts, callback){
 
     rGames = [];// Returns game objects
     if (filters.myGames == true) {
-        users[user.authToken].games.forEach(function (gameName) {
+        users[user.authToken].games.forEach(function(gameName) {
             game = games[gameName];
             rGames.push({
                 "id": "",
@@ -110,7 +110,22 @@ var listGames = function(args, opts, callback){
     }
     else
     {
+        for (var gameName in games) {
+            if (!games.hasOwnProperty(gameName)) continue;
+            var game = games[gameName];
+            var numUsers = (_ => { n = 0; for(k in game.users) n++; return n; })();
+            if (filters.notFull && numUsers >= game.maxUsers) continue;
+            if (filters.notEmpty && numUsers <= 0) continue;
+            if (filters.isPublic && !game.public) continue;
 
+            rGames.push({
+                "id": "",
+                "name": game.name,
+                "public": game.public,
+                "numUsers": numUsers,
+                "maxUsers": game.maxUsers
+            });
+        };
     }
 
     // Return games matching filter
