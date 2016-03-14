@@ -99,12 +99,11 @@ var listGames = function(args, opts, callback){
     if (filters.myGames == true) {
         users[user.authToken].games.forEach(function (gameName) {
             game = games[gameName];
-            console.log(game);
             rGames.push({
                 "id": "",
                 "name": game.name,
                 "public": game.public,
-                "numUsers": (() => { var n = 0; for(k in game.users) n++; return n; })(),
+                "numUsers": (_ => { n = 0; for(k in game.users) n++; return n; })(),
                 "maxUsers": game.maxUsers
             });
         });
@@ -200,8 +199,8 @@ var move = function(args, opts, callback){
         callback('No game exists by that name.', null);
         return;
     }
-    
-    games[game.name].chat(user, game, unit, move, callback);
+
+    games[game.name].move(user, unit, move, callback);
 }
 
 // Expose JSON-RPC API
@@ -211,7 +210,7 @@ server.expose('listGames', listGames);
 server.expose('create', create);
 server.expose('game.connect', connect);
 server.expose('game.chat', chat);
-//server.expose('game.users', users)
+server.expose('game.move', move);
 
 // Finally, listen for incoming connections
 server.listen(8000, config.hostname);

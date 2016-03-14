@@ -69,7 +69,7 @@ method.chat = function(user, message, callback)
     this.events.emit('chatted', {data: [user.name, message.text]})
 }
 
-method.move = function(user, game, unit, move, callback)
+method.move = function(user, unit, move, callback)
 {
     this.events.emit('moved', {data: [user, unit, move]});
 }
