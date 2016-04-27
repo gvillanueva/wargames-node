@@ -1,5 +1,9 @@
+// Import dependent modules
 var method = Game.prototype;
 var Events = require('events');
+var log = require('npmlog');
+
+log.verbose(__filename, 'dependent modules loaded');
 
 function Game(name, maxUsers) {
     this.name = name;

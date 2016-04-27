@@ -10,7 +10,8 @@
     "json-rpc2": "1.0.2",
     "node-uuid": "1.4.7",
     "mysql": "2.10.2",
-    "bcrypt": "0.8.5"
+    "bcrypt": "0.8.5",
+    "npmlog": "2.0.3"
   },
   "repository": {
     "type": "git",

@@ -1,3 +1,8 @@
+// Import logger and set log level
+var log = require('npmlog');
+log.level = process.argv[2] || 'warn';
+
+// Import remaining dependencies
 var config = require('./config');
 var JsonRpc = require('json-rpc2');
 var Game = require('./game');
@@ -5,6 +10,8 @@ var MySQL = require('mysql');
 var Crypto = require('crypto');
 var User = require('./user');
 var bcrypt = require('bcrypt');
+
+log.verbose(__filename, 'dependencies loaded');
 
 var server = JsonRpc.Server.$create({
 	'websocket': true,
