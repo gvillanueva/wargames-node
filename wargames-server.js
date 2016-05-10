@@ -13,6 +13,7 @@ var bcrypt = require('bcrypt');
 
 log.verbose(__filename, 'dependencies loaded');
 
+// Create our JSON-RPC server object
 var server = JsonRpc.Server.$create({
 	'websocket': true,
 	'headers': {
@@ -20,6 +21,7 @@ var server = JsonRpc.Server.$create({
 	}
 });
 
+// Create objects to contain connected users and running games
 var users = {};
 var games = {};
  
@@ -31,8 +33,13 @@ var serializeGame = function()
     
 }
 
-// Valid args with user database information, store token in runtime
-var login = function(args, opts, callback) {
+/**
+ * Validate registered user information and return sha256 authentication token.
+ * @param {Object|Object[]} args Arguments of the JSON-RPC.
+ * @param {Connection} connection json-rpc2 Connection object
+ * @param {Function} callback Response generator callback (err, result).
+ */
+var login = function(args, connection, callback) {
     var user = args[0];
     
     if (!user || !user.name || !user.password) {
@@ -71,7 +78,16 @@ var login = function(args, opts, callback) {
     );
 }
 
-var logout = function(args, opts, callback){
+/**
+ * Logs a user out of the system.
+ * @param {Object|Object[]} args Arguments of the JSON-RPC.
+ * @param {Connection} connection json-rpc2 Connection object
+ * @param {Function} callback Response generator callback (err, result).
+ *
+ * Leaves any games the user is currently a member of and deletes their
+ * authorization token.
+ */
+var logout = function(args, connection, callback){
     var authToken = args;
     
     if (!authToken) {
@@ -92,7 +108,13 @@ var logout = function(args, opts, callback){
     callback(null, null);    
 }
 
-var listGames = function(args, opts, callback){
+/**
+ * Returns a list of games matching the given filter.
+ * @param {Object|Object[]} args Arguments of the JSON-RPC.
+ * @param {Connection} connection json-rpc2 Connection object
+ * @param {Function} callback Response generator callback (err, result).
+ */
+var listGames = function(args, connection, callback){
     var user = args[0];
     var filters = args[1];
 
@@ -139,7 +161,13 @@ var listGames = function(args, opts, callback){
     callback(null, rGames);
 }
 
-var create = function(args, opts, callback){
+/**
+ * Creates a new game using the given arguments.
+ * @param {Object|Object[]} args Arguments of the JSON-RPC.
+ * @param {Connection} connection json-rpc2 Connection object
+ * @param {Function} callback Response generator callback (err, result).
+ */
+var create = function(args, connection, callback){
     var user = args[0];
     var game = args[1];
 
@@ -174,7 +202,13 @@ var create = function(args, opts, callback){
     callback(null, game);
 }
 
-var connect = function(args, conn, callback){
+/**
+ * Connects a user to the events of a game.
+ * @param {Object|Object[]} args Arguments of the JSON-RPC.
+ * @param {Connection} connection json-rpc2 Connection object
+ * @param {Function} callback Response generator callback (err, result).
+ */
+var connect = function(args, connection, callback){
     var user = args[0];
     var game = args[1];
     
@@ -193,12 +227,18 @@ var connect = function(args, conn, callback){
     // if user not in game
     //  return;
     
-    if (!games[game.name].listen(user.authToken, conn, callback))
+    if (!games[game.name].listen(user.authToken, connection, callback))
         return;
     users[user.authToken].games.push(game.name);
 }
 
-var chat = function(args, opts, callback){
+/**
+ * Sends a chat message to all players in a game.
+ * @param {Object|Object[]} args Arguments of the JSON-RPC.
+ * @param {Connection} connection json-rpc2 Connection object
+ * @param {Function} callback Response generator callback (err, result).
+ */
+var chat = function(args, connection, callback){
     var user = args[0];
     var game = args[1];
     var message = args[2];
@@ -211,7 +251,13 @@ var chat = function(args, opts, callback){
     games[game.name].chat(user, message, callback);
 }
 
-var move = function(args, opts, callback){
+/**
+ * Moves a unit in the game.
+ * @param {Object|Object[]} args Arguments of the JSON-RPC.
+ * @param {Connection} connection json-rpc2 Connection object
+ * @param {Function} callback Response generator callback (err, result).
+ */
+var move = function(args, connection, callback){
     var user = args[0];
     var game = args[1];
     var unit = args[2];
@@ -225,7 +271,7 @@ var move = function(args, opts, callback){
     games[game.name].move(user, unit, move, callback);
 }
 
-// Expose JSON-RPC API
+/** Expose JSON-RPC API */
 server.expose('login', login);
 server.expose('logout', logout);
 server.expose('listGames', listGames);
