@@ -10,6 +10,7 @@ var MySQL = require('mysql');
 var Crypto = require('crypto');
 var User = require('./user');
 var bcrypt = require('bcrypt');
+const fs = require('fs');
 
 log.verbose(__filename, 'dependencies loaded');
 
@@ -21,15 +22,13 @@ var server = JsonRpc.Server.$create({
 	}
 });
 
-// Create objects to contain connected users and running games
-var users = {};
-var games = {};
+var users = {};// key=authToken, value=User object
+var games = {};// key=gameId, value=Game object
  
 //games contain expiry timeout
 //games contain list of users[];
 //games contain list of messages[]?  probably not necessary
-var serializeGame = function()
-{
+var serializeGame = function() {
     
 }
 
@@ -168,38 +167,46 @@ var listGames = function(args, connection, callback){
  * @param {Function} callback Response generator callback (err, result).
  */
 var create = function(args, connection, callback){
-    var user = args[0];
-    var game = args[1];
+    var userArg = args[0];
+    var gameArg = args[1];
 
     // Is user authenticated?
-    if (!users[user.authToken]) {
+    if (!users[userArg.authToken]) {
         callback('User not authorized.', null);
         return;
     }
 
-    // Is game name 
-    if (!game.maxUsers || game.maxUsers <= 0) {
+    // Validate max users param
+    if (!gameArg.maxUsers || gameArg.maxUsers <= 0) {
         callback('Can\'t have a game with no players!', null);
         return;
     }
     
     // Is game name unique?
-    if (games[game.name]) {
+    if (games[gameArg.name]) {
         callback('A game with that name already exists.', null);
+        return;
+    }
+
+    // Validate game system
+    if (!gameArg.system || !fs.lstatSync(__dirname + "/systems/" + gameArg.system).isDirectory()) {
+        callback('system undefined or does not exist.');
         return;
     }
 
     // Has user exceeded number of concurrent games?
 
     // Create game
-    var game = new Game(game.name, game.maxUsers);
+    var game = new Game(gameArg.name, gameArg.maxUsers, gameArg.system);
     
     // Set game timeout
     //game.timeout = setTimeout(serializeGame, config.game.timeout);
     
     // Add game to games object
-    games[game.name] = game;
-    callback(null, game);
+    games[gameArg.name] = game;
+
+    // Return error = null, result = game.name
+    callback(null, game.name);
 }
 
 /**
