@@ -1,3 +1,8 @@
+/**
+ * @file Defines unit tests for the WargamesError class
+ * @author Giancarlo Villanueva
+ */
+
 var assert = require("chai").assert;
 var WargamesError = require("../systems/wargames/error.js");
 
