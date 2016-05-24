@@ -5,10 +5,10 @@ log.level = process.argv[2] || 'warn';
 // Import remaining dependencies
 var config = require('./config');
 var JsonRpc = require('json-rpc2');
-var Game = require('./game');
+var Game = require('./lib/game.js');
+var User = require('./lib/user.js');
 var MySQL = require('mysql');
 var Crypto = require('crypto');
-var User = require('./user');
 var bcrypt = require('bcrypt');
 const fs = require('fs');
 
