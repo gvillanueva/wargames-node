@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gvillanueva/wargames-server.git"
+    "url": "https://github.com/gvillanueva/wargames-node.git"
   },
   "keywords": [
     "wargames",
@@ -26,7 +26,11 @@
   "author": "Giancarlo Villanueva",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/gvillanueva/wargames-server/issues"
+    "url": "https://github.com/gvillanueva/wargames-node/issues"
   },
-  "homepage": "https://github.com/gvillanueva/wargames-server"
+  "homepage": "https://github.com/gvillanueva/wargames-node",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.1"
+  }
 }
