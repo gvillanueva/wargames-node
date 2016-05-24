@@ -3,7 +3,7 @@
  * @author Giancarlo Villanueva
  */
 
-WargamesError.prototype = Object.create(Error);
+WargamesError.prototype = Object.create(Error.prototype);
 WargamesError.prototype.constructor = WargamesError;
 
 function WargamesError(message) {
