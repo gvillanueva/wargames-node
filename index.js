@@ -209,7 +209,7 @@ var create = function(args, connection, callback){
     }
 
     // Validate game system
-    if (!gameArg.system || !fs.lstatSync(__dirname + "/systems/" + gameArg.system).isDirectory()) {
+    if (!gameArg.system || !fs.lstatSync(__dirname + "/lib/systems/" + gameArg.system).isDirectory()) {
         callback('system undefined or does not exist.');
         return;
     }
