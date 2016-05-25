@@ -4,7 +4,7 @@
  */
 
 var assert = require("chai").assert;
-var WargamesError = require("../systems/wargames/error.js");
+var WargamesError = require("../lib/systems/wargames/error.js");
 
 describe("WargamesError", function() {
     it("should be an instance of Error", function() {
