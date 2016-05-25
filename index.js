@@ -161,6 +161,26 @@ var listGames = function(args, connection, callback){
 }
 
 /**
+ * Returns a list of the installed systems.
+ * @param args - No arguments required
+ * @param {Connection} connection json-rpc2 Connection object
+ * @param {Function} callback Response generator callback (err, result).
+ */
+var listSystems = function(args, connection, callback) {
+    // Validate game system
+    var systemsPath = __dirname + "/lib/systems/";
+    var files = fs.readdirSync(systemsPath);
+    var systems = [];
+
+    for(var i = 0; i < files.length; i++)
+        if (files[i] != '.')
+            if (fs.statSync(systemsPath + "/" + files[i]).isDirectory() && files[i] != "wargames")
+                systems.push(files[i]);
+
+    callback(null, systems);
+}
+
+/**
  * Creates a new game using the given arguments.
  * @param {Object|Object[]} args Arguments of the JSON-RPC.
  * @param {Connection} connection json-rpc2 Connection object
@@ -282,6 +302,7 @@ var move = function(args, connection, callback){
 server.expose('login', login);
 server.expose('logout', logout);
 server.expose('listGames', listGames);
+server.expose('listSystems', listSystems);
 server.expose('create', create);
 server.expose('game.connect', connect);
 server.expose('game.chat', chat);
