@@ -4,11 +4,7 @@ log.level = process.argv[2] || 'warn';
 
 // Import remaining dependencies
 var JsonRpc = require('json-rpc2');
-const Api = {
-    App: require("./lib/app.js").Rpc,
-    Game: require("./lib/game.js").Rpc
-};
-
+const User = require("./lib/user.js");
 const Game = require("./lib/game.js");
 const config = require("./config.js");
 
@@ -23,8 +19,8 @@ var server = JsonRpc.Server.$create({
 });
 
 /** Expose JSON-RPC API */
-server.expose("App", Api.App);
-server.expose("Game", Api.Game);
+server.expose("User", User.JsonRpc);
+server.expose("Game", Game.JsonRpc);
 
 // Finally, listen for incoming connections
 server.listen(8000, config.hostname);
