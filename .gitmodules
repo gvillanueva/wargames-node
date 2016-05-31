@@ -1,0 +1,6 @@
+[submodule "lib/systems/wargames-checkers"]
+	path = lib/systems/checkers
+	url = https://github.com/gvillanueva/wargames-checkers.git
+[submodule "lib/systems/wargames-chess"]
+	path = lib/systems/chess
+	url = http://github.com/gvillanueva/wargames-chess
