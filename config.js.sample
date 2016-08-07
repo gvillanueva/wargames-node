@@ -1,6 +1,7 @@
 var config = {};
 
 config.game = {}
+config.vm = {}
 config.database = {}
 
 config.hostname = 'localhost';
